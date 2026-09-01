@@ -4,8 +4,6 @@ A read-only C# engineering utility demonstrating how Siemens TIA Portal library 
 
 The application attaches to an already running TIA Portal V21 process, reads the open project's **Project Library → Types** tree recursively, and displays library type/version metadata in a searchable table.
 
-> Screenshot placeholder: `screenshots/library-inspector.png` can be added after manual verification against a fictional local TIA project.
-
 ## What it inspects
 
 - Running TIA Portal processes and their open-project state.
