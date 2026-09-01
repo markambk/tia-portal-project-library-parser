@@ -1,4 +1,4 @@
-# TIA Openness Library Inspector — Public Demo
+# TIA Portal Project Library Parser — Public Demo
 
 A read-only C# engineering utility demonstrating how Siemens TIA Portal library metadata can be inspected programmatically through TIA Openness.
 
