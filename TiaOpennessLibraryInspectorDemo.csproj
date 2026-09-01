@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>TiaOpennessLibraryInspectorDemo</AssemblyName>
+    <RootNamespace>TiaOpennessLibraryInspectorDemo</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TiaPortalV21PublicApiDir Condition="'$(TiaPortalV21PublicApiDir)' == '' and '$(TIA_PORTAL_V21_PUBLIC_API)' != ''">$(TIA_PORTAL_V21_PUBLIC_API)</TiaPortalV21PublicApiDir>
+    <TiaPortalV21PublicApiDir Condition="'$(TiaPortalV21PublicApiDir)' == '' and '$(ProgramW6432)' != ''">$(ProgramW6432)\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPortalV21PublicApiDir>
+    <TiaPortalV21PublicApiDir Condition="'$(TiaPortalV21PublicApiDir)' == ''">$(ProgramFiles)\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPortalV21PublicApiDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\Program.cs" />
+    <Compile Include="src\MainForm.cs" />
+    <Compile Include="src\TiaLibraryInspector.cs" />
+    <Compile Include="src\InspectionModels.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Siemens.Engineering.Base, Version=21.0.0.0, Culture=neutral, PublicKeyToken=29bfe5fdf4ba5d3b">
+      <HintPath>$(TiaPortalV21PublicApiDir)\Siemens.Engineering.Base.dll</HintPath>
+      <Private>false</Private>
+      <SpecificVersion>true</SpecificVersion>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="ValidateTiaPortalV21Reference" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(TiaPortalV21PublicApiDir)\Siemens.Engineering.Base.dll')"
+           Text="TIA Portal V21 Openness Base assembly was not found. Set TIA_PORTAL_V21_PUBLIC_API or TiaPortalV21PublicApiDir to the local V21 net48 PublicAPI folder." />
+  </Target>
+</Project>
