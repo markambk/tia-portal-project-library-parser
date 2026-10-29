@@ -17,9 +17,9 @@ namespace TiaOpennessLibraryInspectorDemo
             if (_tiaApiDirectory.Length == 0)
             {
                 MessageBox.Show(
-                    "TIA Portal V21 Openness was not found. Install TIA Portal V21 with " +
-                    "Openness, or set TIA_PORTAL_V21_PUBLIC_API to the local net48 PublicAPI folder.",
-                    "TIA Portal V21 Openness required",
+                    $"TIA Portal {TiaVersion.Name} Openness was not found. Install TIA Portal {TiaVersion.Name} with " +
+                    $"Openness, or set {TiaVersion.PublicApiEnvironmentVariable} to the local PublicAPI folder.",
+                    $"TIA Portal {TiaVersion.Name} Openness required",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return;
@@ -49,7 +49,7 @@ namespace TiaOpennessLibraryInspectorDemo
         private static string FindTiaApiDirectory()
         {
             var candidates = new List<string>();
-            string configured = Environment.GetEnvironmentVariable("TIA_PORTAL_V21_PUBLIC_API");
+            string configured = Environment.GetEnvironmentVariable(TiaVersion.PublicApiEnvironmentVariable);
             if (!string.IsNullOrWhiteSpace(configured))
             {
                 candidates.Add(configured);
@@ -59,14 +59,9 @@ namespace TiaOpennessLibraryInspectorDemo
                 Environment.SpecialFolder.ProgramFiles);
             if (!string.IsNullOrWhiteSpace(programFiles))
             {
-                candidates.Add(Path.Combine(
-                    programFiles,
-                    "Siemens",
-                    "Automation",
-                    "Portal V21",
-                    "PublicAPI",
-                    "V21",
-                    "net48"));
+                var parts = new List<string> { programFiles };
+                parts.AddRange(TiaVersion.PublicApiRelativePath);
+                candidates.Add(Path.Combine(parts.ToArray()));
             }
 
             foreach (string candidate in candidates)
@@ -81,7 +76,7 @@ namespace TiaOpennessLibraryInspectorDemo
                     continue;
                 }
 
-                if (File.Exists(Path.Combine(fullPath, "Siemens.Engineering.Base.dll")))
+                if (File.Exists(Path.Combine(fullPath, TiaVersion.MainAssemblyFile)))
                 {
                     return fullPath;
                 }

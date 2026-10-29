@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Siemens.Engineering;
 using Siemens.Engineering.Library.Types;
+using Siemens.Engineering.Multiuser;
 
 namespace TiaOpennessLibraryInspectorDemo
 {
@@ -52,11 +54,11 @@ namespace TiaOpennessLibraryInspectorDemo
 
             using (TiaPortal portal = processInfo.Process.Attach())
             {
-                Project project = portal.Projects.FirstOrDefault();
+                ProjectBase project = FindOpenProject(portal);
                 if (project == null)
                 {
                     throw new InvalidOperationException(
-                        "The selected TIA Portal process does not have an open project.");
+                        "The selected TIA Portal process does not have an open project or Multiuser local session.");
                 }
 
                 var result = new InspectionResult { ProjectName = project.Name };
@@ -64,6 +66,29 @@ namespace TiaOpennessLibraryInspectorDemo
                 ScanFolder(root, "Project Library/Types", result);
                 return result;
             }
+        }
+
+        /// <summary>
+        /// A single-user project, else the project of a Multiuser local session (.als20 / .als21):
+        /// a local session is not listed in <c>Projects</c>.
+        /// </summary>
+        private static ProjectBase FindOpenProject(TiaPortal portal)
+        {
+            Project project = portal.Projects.FirstOrDefault();
+            if (project != null)
+            {
+                return project;
+            }
+
+            foreach (LocalSession session in portal.LocalSessions)
+            {
+                if (session.Project != null)
+                {
+                    return session.Project;
+                }
+            }
+
+            return null;
         }
 
         private static void ScanFolder(
@@ -152,7 +177,10 @@ namespace TiaOpennessLibraryInspectorDemo
         {
             try
             {
-                LibraryType typeObject = version.TypeObject;
+                // Read through reflection: LibraryTypeVersion.TypeObject is not guaranteed in
+                // every Openness version (V20 / V21), and a missing property only drops a hint.
+                PropertyInfo property = version.GetType().GetProperty("TypeObject");
+                object typeObject = property?.GetValue(version);
                 return typeObject == null ? string.Empty : RuntimeTypeName(typeObject);
             }
             catch (Exception exception)

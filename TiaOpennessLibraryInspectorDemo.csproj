@@ -11,28 +11,51 @@
     <AssemblyName>TiaOpennessLibraryInspectorDemo</AssemblyName>
     <RootNamespace>TiaOpennessLibraryInspectorDemo</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <TiaPortalV21PublicApiDir Condition="'$(TiaPortalV21PublicApiDir)' == '' and '$(TIA_PORTAL_V21_PUBLIC_API)' != ''">$(TIA_PORTAL_V21_PUBLIC_API)</TiaPortalV21PublicApiDir>
-    <TiaPortalV21PublicApiDir Condition="'$(TiaPortalV21PublicApiDir)' == '' and '$(ProgramW6432)' != ''">$(ProgramW6432)\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPortalV21PublicApiDir>
-    <TiaPortalV21PublicApiDir Condition="'$(TiaPortalV21PublicApiDir)' == ''">$(ProgramFiles)\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPortalV21PublicApiDir>
+
+    <!-- TIA Portal version to build against: 21 (default) or 20. dotnet build -p:TiaPortalVersion=20 -->
+    <TiaPortalVersion Condition="'$(TiaPortalVersion)' == ''">21</TiaPortalVersion>
+    <DefineConstants>$(DefineConstants);TIA_V$(TiaPortalVersion)</DefineConstants>
+    <OutputPath>bin\$(Platform)\$(Configuration)\V$(TiaPortalVersion)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- V21: net48 PublicAPI split into Siemens.Engineering.Base.dll and friends. -->
+  <PropertyGroup Condition="'$(TiaPortalVersion)' == '21'">
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == '' and '$(TiaPortalV21PublicApiDir)' != ''">$(TiaPortalV21PublicApiDir)</TiaPublicApiDir>
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == '' and '$(TIA_PORTAL_V21_PUBLIC_API)' != ''">$(TIA_PORTAL_V21_PUBLIC_API)</TiaPublicApiDir>
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == '' and '$(ProgramW6432)' != ''">$(ProgramW6432)\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPublicApiDir>
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == ''">$(ProgramFiles)\Siemens\Automation\Portal V21\PublicAPI\V21\net48</TiaPublicApiDir>
+    <TiaMainAssembly>Siemens.Engineering.Base</TiaMainAssembly>
+  </PropertyGroup>
+
+  <!-- V20: a single Siemens.Engineering.dll (plus Siemens.Engineering.Hmi.dll) in PublicAPI\V20. -->
+  <PropertyGroup Condition="'$(TiaPortalVersion)' == '20'">
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == '' and '$(TIA_PORTAL_V20_PUBLIC_API)' != ''">$(TIA_PORTAL_V20_PUBLIC_API)</TiaPublicApiDir>
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == '' and '$(ProgramW6432)' != ''">$(ProgramW6432)\Siemens\Automation\Portal V20\PublicAPI\V20</TiaPublicApiDir>
+    <TiaPublicApiDir Condition="'$(TiaPublicApiDir)' == ''">$(ProgramFiles)\Siemens\Automation\Portal V20\PublicAPI\V20</TiaPublicApiDir>
+    <TiaMainAssembly>Siemens.Engineering</TiaMainAssembly>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="src\Program.cs" />
+    <Compile Include="src\TiaVersion.cs" />
     <Compile Include="src\MainForm.cs" />
     <Compile Include="src\TiaLibraryInspector.cs" />
     <Compile Include="src\InspectionModels.cs" />
   </ItemGroup>
 
+  <!-- Every Openness assembly of the selected version, from the local installation, never copied. -->
   <ItemGroup>
-    <Reference Include="Siemens.Engineering.Base, Version=21.0.0.0, Culture=neutral, PublicKeyToken=29bfe5fdf4ba5d3b">
-      <HintPath>$(TiaPortalV21PublicApiDir)\Siemens.Engineering.Base.dll</HintPath>
+    <_TiaPublicApiAssembly Include="$(TiaPublicApiDir)\Siemens.Engineering*.dll" />
+    <Reference Include="@(_TiaPublicApiAssembly->'%(Filename)')">
+      <HintPath>%(_TiaPublicApiAssembly.Identity)</HintPath>
       <Private>false</Private>
-      <SpecificVersion>true</SpecificVersion>
     </Reference>
   </ItemGroup>
 
-  <Target Name="ValidateTiaPortalV21Reference" BeforeTargets="ResolveReferences">
-    <Error Condition="!Exists('$(TiaPortalV21PublicApiDir)\Siemens.Engineering.Base.dll')"
-           Text="TIA Portal V21 Openness Base assembly was not found. Set TIA_PORTAL_V21_PUBLIC_API or TiaPortalV21PublicApiDir to the local V21 net48 PublicAPI folder." />
+  <Target Name="ValidateTiaPortalReference" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(TiaPortalVersion)' != '20' and '$(TiaPortalVersion)' != '21'"
+           Text="TiaPortalVersion must be 20 or 21 (got '$(TiaPortalVersion)')." />
+    <Error Condition="!Exists('$(TiaPublicApiDir)\$(TiaMainAssembly).dll')"
+           Text="TIA Portal V$(TiaPortalVersion) Openness assembly $(TiaMainAssembly).dll was not found in '$(TiaPublicApiDir)'. Set TIA_PORTAL_V$(TiaPortalVersion)_PUBLIC_API or TiaPublicApiDir to the local V$(TiaPortalVersion) PublicAPI folder." />
   </Target>
 </Project>

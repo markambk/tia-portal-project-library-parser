@@ -25,7 +25,7 @@ namespace TiaOpennessLibraryInspectorDemo
         public MainForm(TiaLibraryInspector inspector)
         {
             _inspector = inspector ?? throw new ArgumentNullException(nameof(inspector));
-            Text = "TIA Openness Library Inspector — Public Demo";
+            Text = "TIA Openness Library Inspector — Public Demo (TIA Portal " + TiaVersion.Name + ")";
             MinimumSize = new Size(980, 620);
             Size = new Size(1280, 760);
             StartPosition = FormStartPosition.CenterScreen;
@@ -125,7 +125,7 @@ namespace TiaOpennessLibraryInspectorDemo
 
             _statusLabel.AutoSize = true;
             _statusLabel.ForeColor = Color.FromArgb(80, 96, 112);
-            _statusLabel.Text = "Select a running TIA Portal V21 process with an open project.";
+            _statusLabel.Text = $"Select a running TIA Portal {TiaVersion.Name} process with an open project or Multiuser local session.";
 
             var layout = new TableLayoutPanel
             {
